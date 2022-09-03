@@ -62,10 +62,10 @@ class Comment(db.Model):
     post_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
     text = db.Column(db.Text, nullable=False)
 
-
+db.drop_all()
 db.create_all()
 
-# db.drop_all()
+
 
 @login_manager.user_loader
 def load_user(user_id):
