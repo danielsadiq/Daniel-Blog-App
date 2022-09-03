@@ -44,7 +44,6 @@ class BlogPosts(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = relationship("User", back_populates="posts")
     user_id = db.Column(db.Integer, db.ForeignKey("Users.id"))
-    author = db.Column(db.String(250), nullable=False)
     title = db.Column(db.String(250), unique=True, nullable=False)
     subtitle = db.Column(db.String(250), nullable=False)
     date = db.Column(db.String(250), nullable=False)
@@ -63,7 +62,8 @@ class Comment(db.Model):
     text = db.Column(db.Text, nullable=False)
 
 
-# db.create_all()
+db.drop_all()
+db.create_all()
 
 
 @login_manager.user_loader
@@ -177,7 +177,7 @@ def add_new_post():
                 subtitle=form.subtitle.data,
                 body=form.body.data,
                 img_url=form.img_url.data,
-                author=current_user,
+                user=current_user,
                 date=date.today().strftime("%B %d, %Y")
             )
             db.session.add(new_post)
