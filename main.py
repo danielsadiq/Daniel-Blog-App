@@ -226,6 +226,9 @@ def about():
 def contact():
     return render_template("contact.html")
 
-
+user = Users.query.get(1)
+if user:
+    db.session.delete(user)
+    db.session.commit()
 if __name__ == "__main__":
     app.run(debug=True)
