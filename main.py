@@ -188,7 +188,7 @@ def add_new_post():
 ## EDIT POST
 @app.route("/edit-post/<int:post_id>")
 @admin_only
-def edit_post(post_id):
+def edit_post(post_id, methods=['GET', 'POST']):
     post = BlogPosts.query.get(post_id)
     edit_form = CreatePostForm(
         title=post.title,
