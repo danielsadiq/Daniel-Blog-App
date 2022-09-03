@@ -32,11 +32,11 @@ class User(UserMixin, db.Model):
     email = db.Column(db.String(250), nullable=False, unique=True)
     password = db.Column(db.String(250), nullable=False)
     name = db.Column(db.String(250), nullable=False)
-    posts = relationship("BlogPost", back_populates="user")
+    posts = relationship("BlogPosts", back_populates="user")
     comments = relationship("Comment", back_populates="user")
 
 
-class BlogPost(db.Model):
+class BlogPosts(db.Model):
     __tablename__ = "blog_posts"
     id = db.Column(db.Integer, primary_key=True)
     user = relationship("User", back_populates="posts")
@@ -55,11 +55,12 @@ class Comment(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     user = relationship("User", back_populates="comments")
     user_id = db.Column(db.Integer, db.ForeignKey("Users.id"))
-    parent_post = relationship("BlogPost", back_populates="comments")
+    parent_post = relationship("BlogPosts", back_populates="comments")
     post_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
     text = db.Column(db.Text, nullable=False)
 
-# db.create_all()
+
+db.create_all()
 
 
 @login_manager.user_loader
@@ -88,7 +89,7 @@ def admin_only(f):
 ## HOME PAGE/GET ALL POSTS
 @app.route('/')
 def get_all_posts():
-    posts = BlogPost.query.all()
+    posts = BlogPosts.query.all()
     return render_template("index.html", all_posts=posts)
 
 ## REGISTER TO THE BLOG
@@ -143,7 +144,7 @@ def logout():
 ## SHOW CERTAIN POST
 @app.route("/post/<int:post_id>", methods=['GET', 'POST'])
 def show_post(post_id):
-    requested_post = BlogPost.query.get(post_id)
+    requested_post = BlogPosts.query.get(post_id)
     form = CommentForm()
     comments = Comment.query.filter_by(post_id=requested_post.id).all()
     if request.method == 'POST':
@@ -167,7 +168,7 @@ def add_new_post():
     form = CreatePostForm()
     if request.method == "POST":
         if form.validate_on_submit():
-            new_post = BlogPost(
+            new_post = BlogPosts(
                 user_id = current_user.id,
                 title=form.title.data,
                 subtitle=form.subtitle.data,
@@ -186,7 +187,7 @@ def add_new_post():
 @app.route("/edit-post/<int:post_id>")
 @admin_only
 def edit_post(post_id):
-    post = BlogPost.query.get(post_id)
+    post = BlogPosts.query.get(post_id)
     edit_form = CreatePostForm(
         title=post.title,
         subtitle=post.subtitle,
@@ -210,7 +211,7 @@ def edit_post(post_id):
 @app.route("/delete/<int:post_id>")
 @admin_only
 def delete_post(post_id):
-    post_to_delete = BlogPost.query.get(post_id)
+    post_to_delete = BlogPosts.query.get(post_id)
     db.session.delete(post_to_delete)
     db.session.commit()
     return redirect(url_for('get_all_posts'))
