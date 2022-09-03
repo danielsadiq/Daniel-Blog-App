@@ -26,7 +26,7 @@ db = SQLAlchemy(app)
 
 
 ##CONFIGURE TABLES
-class User(UserMixin, db.Model):
+class Users(UserMixin, db.Model):
     __tablename__ = "Users"
     id = db.Column(db.Integer, primary_key=True)
     email = db.Column(db.String(250), nullable=False, unique=True)
@@ -39,7 +39,7 @@ class User(UserMixin, db.Model):
 class BlogPosts(db.Model):
     __tablename__ = "blog_posts"
     id = db.Column(db.Integer, primary_key=True)
-    user = relationship("User", back_populates="posts")
+    user = relationship("Users", back_populates="posts")
     user_id = db.Column(db.Integer, db.ForeignKey("Users.id"))
     author = db.Column(db.String(250), nullable=False)
     title = db.Column(db.String(250), unique=True, nullable=False)
@@ -53,7 +53,7 @@ class BlogPosts(db.Model):
 class Comment(db.Model):
     __tablename__ = "comments"
     id = db.Column(db.Integer, primary_key=True)
-    user = relationship("User", back_populates="comments")
+    user = relationship("Users", back_populates="comments")
     user_id = db.Column(db.Integer, db.ForeignKey("Users.id"))
     parent_post = relationship("BlogPosts", back_populates="comments")
     post_id = db.Column(db.Integer, db.ForeignKey("blog_posts.id"))
@@ -65,7 +65,7 @@ db.create_all()
 
 @login_manager.user_loader
 def load_user(user_id):
-    return User.query.get(user_id)
+    return Users.query.get(user_id)
 
 
 def admin_only(function):
@@ -99,11 +99,11 @@ def register():
     data = dict(request.form)
     if request.method == "POST":
         if form.validate_on_submit():
-            if User.query.filter_by(email=data['email']).first() != None:
+            if Users.query.filter_by(email=data['email']).first() != None:
                 flash("You've already signed up with this email. Login Instead")
                 return redirect(url_for('login'))
             pwd = generate_password_hash(data['password'])
-            user = User(email=data['email'], password=pwd, name=data['name'])
+            user = Users(email=data['email'], password=pwd, name=data['name'])
             db.session.add(user)
             db.session.commit()
             login_user(user)
@@ -121,7 +121,7 @@ def login():
     if request.method == "POST":
         data = dict(request.form)
         if form.validate_on_submit():
-            user = User.query.filter_by(email=data['email']).first()
+            user = Users.query.filter_by(email=data['email']).first()
             if user:
                 if check_password_hash(user.password, data['password']):
                     login_user(user)
