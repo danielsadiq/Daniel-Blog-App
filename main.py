@@ -4,6 +4,7 @@ from flask import Flask, render_template, redirect, url_for, flash, request
 from flask_bootstrap import Bootstrap
 from flask_ckeditor import CKEditor
 from datetime import date
+from emaily import SendMail
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship
@@ -23,7 +24,8 @@ Bootstrap(app)
 uri = os.getenv("DATABASE_URL")  # or other relevant config var
 if uri.startswith("postgres://"):
     uri = uri.replace("postgres://", "postgresql://", 1)
-app.config['SQLALCHEMY_DATABASE_URI'] = uri
+# app.config['SQLALCHEMY_DATABASE_URI'] = uri
+app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///bog.db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
@@ -62,7 +64,7 @@ class Comment(db.Model):
     text = db.Column(db.Text, nullable=False)
 
 
-# db.create_all()
+db.create_all()
 
 
 @login_manager.user_loader
@@ -126,7 +128,7 @@ def login():
             user = User.query.filter_by(email=data['email']).first()
             if user:
                 if check_password_hash(user.password, data['password']):
-                    login_user(user)
+                    login_user(user, remember=form.remember.data)
                     flash('Logged In Successfully!')
                     return redirect(url_for('get_all_posts', logged_in=True))
                 else:
@@ -170,17 +172,21 @@ def add_new_post():
     form = CreatePostForm()
     if request.method == "POST":
         if form.validate_on_submit():
-            new_post = BlogPosts(
-                user_id = current_user.id,
-                title=form.title.data,
-                subtitle=form.subtitle.data,
-                body=form.body.data,
-                img_url=form.img_url.data,
-                user=current_user,
-                date=date.today().strftime("%B %d, %Y")
-            )
-            db.session.add(new_post)
-            db.session.commit()
+            if current_user.is_authenticated:
+                new_post = BlogPosts(
+                    user_id = current_user.id,
+                    title=form.title.data,
+                    subtitle=form.subtitle.data,
+                    body=form.body.data,
+                    img_url=form.img_url.data,
+                    user=current_user,
+                    date=date.today().strftime("%B %d, %Y")
+                )
+                db.session.add(new_post)
+                db.session.commit()
+            else:
+                flash("Please Login to write a post")
+                return redirect(url_for("login"))    
             return redirect(url_for("get_all_posts"))
     return render_template("make-post.html", form=form)
 
@@ -225,8 +231,20 @@ def about():
     return render_template("about.html")
 
 
-@app.route("/contact")
+@app.route("/contact", methods=['GET', 'POST'])
 def contact():
+    if request.method == 'POST':
+        data = dict(request.form)
+        val = f"""\
+                DANIEL'S BLOG APP\n
+                Name-{data['name']}\n
+                Email-{data['email']} \n
+                Phone Number-{data['phone']}\n
+                Message {data['message']}"""
+        print(val)
+        print(type(val))
+        SendMail(val)
+        return render_template("thanks.html")
     return render_template("contact.html")
 
 

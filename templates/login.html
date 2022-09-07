@@ -26,12 +26,13 @@
         {% with messages = get_flashed_messages() %}
             {% if messages %}
               {% for message in messages %}
-                <p>{{ message }}</p>
+                <i>{{ message }}</i>
               {% endfor %}
             {% endif %}
         {% endwith %}
         {{ form.csrf_token }}
         {{ wtf.quick_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        <small id="emailHelp" class="pt-3 text-muted"><a href="#">Forgot Password?</a></small>
       </div>
     </div>
   </div>
