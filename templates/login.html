@@ -26,7 +26,7 @@
         {% with messages = get_flashed_messages() %}
             {% if messages %}
               {% for message in messages %}
-                <i>{{ message }}</i>
+                <i style="color: red;">{{ message }}</i>
               {% endfor %}
             {% endif %}
         {% endwith %}
