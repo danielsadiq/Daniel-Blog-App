@@ -129,7 +129,6 @@ def login():
             if user:
                 if check_password_hash(user.password, data['password']):
                     login_user(user, remember=form.remember.data)
-                    flash('Logged In Successfully!')
                     return redirect(url_for('get_all_posts', logged_in=True))
                 else:
                     flash('Wrong Password for User')
